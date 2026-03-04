@@ -1,0 +1,20 @@
+/* 更改bootstrap弹窗样式 */
+.modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    border-bottom: none;
+}
+
+.modal-footer {
+    border-top: none;
+    justify-content: flex-end;
+}
+
+.modal-footer .btn {
+    border-radius: 999px;
+    padding: 8px 24px;
+}
