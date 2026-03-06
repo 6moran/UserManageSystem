@@ -5,11 +5,10 @@ import (
 	"GoWebUser/utils"
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 )
-
-var jwtKey = []byte("bT7@kL2#xV9!mQ4$rN8zC1&dF6pY3wHsJ5uE0tR2yI8oP4aS7dG9hK1lZ3cX6vBn")
 
 func AuthMiddleware(s services.UserService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -23,6 +22,7 @@ func AuthMiddleware(s services.UserService) func(http.Handler) http.Handler {
 				}
 				//其他系统错误
 				fail(w, r, http.StatusInternalServerError, "服务器错误，请稍后再试")
+				log.Printf("AuthMiddleware Cookie failed,err:%v\n", err)
 				return
 			}
 
@@ -40,6 +40,7 @@ func AuthMiddleware(s services.UserService) func(http.Handler) http.Handler {
 					return
 				}
 				fail(w, r, http.StatusInternalServerError, "服务器错误，请稍后再试")
+				log.Printf("AuthMiddleware GetUserStatusByID failed,err:%v\n", err)
 				return
 			}
 			if status == 0 {

@@ -105,7 +105,7 @@ func (m *MySQLUserRepository) GetLimitUsers(page, size int, status, keyword stri
 	}
 
 	//查询用户信息
-	dataSQL := "select username,email,status,role,avatar,create_time,last_time " + baseSQL + "limit ?,?"
+	dataSQL := "select id,username,email,status,role,avatar,create_time,last_time " + baseSQL + "limit ?,?"
 	args = append(args, offest, size)
 	rows, err := m.db.Query(dataSQL, args...)
 	if err != nil {
@@ -114,11 +114,21 @@ func (m *MySQLUserRepository) GetLimitUsers(page, size int, status, keyword stri
 	userList := []*model.User{}
 	for rows.Next() {
 		u := &model.User{}
-		err = rows.Scan(&u.Username, &u.Email, &u.Status, &u.Role, &u.Avatar, &u.CreateTime, &u.LastTime)
+		err = rows.Scan(&u.ID, &u.Username, &u.Email, &u.Status, &u.Role, &u.Avatar, &u.CreateTime, &u.LastTime)
 		if err != nil {
 			return nil, 0, fmt.Errorf("Scan failed,err:%w", err)
 		}
 		userList = append(userList, u)
 	}
 	return userList, num, nil
+}
+
+// DeleteUserByID 删除用户
+func (m *MySQLUserRepository) DeleteUserByID(user *model.User) error {
+	sqlStr := `delete from user where id = ?`
+	_, err := m.db.Exec(sqlStr, user.ID)
+	if err != nil {
+		return fmt.Errorf("Exec failed,err:%w\n", err)
+	}
+	return nil
 }

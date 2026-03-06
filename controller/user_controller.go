@@ -76,7 +76,8 @@ func (c *UserController) HandlerRegister(w http.ResponseWriter, r *http.Request)
 			utils.SendJSON(w, http.StatusBadRequest, "邮箱已存在", nil)
 			return
 		}
-		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，业务处理失败", nil)
+		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerRegistger RegisterUser failed,err:%v\n", err)
 		return
 	}
 	utils.SendJSON(w, http.StatusOK, "注册成功，请登录", nil)
@@ -116,6 +117,7 @@ func (c *UserController) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerLogin LoginUser failed,err:%v\n", err)
 		return
 	}
 
@@ -131,6 +133,7 @@ func (c *UserController) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	utils.SendJSON(w, http.StatusOK, "登录成功", nil)
 }
 
+// HandlerGetUsers 响应请求用户信息
 func (c *UserController) HandlerGetUsers(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	pageStr := query.Get("page")
@@ -141,11 +144,13 @@ func (c *UserController) HandlerGetUsers(w http.ResponseWriter, r *http.Request)
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
 		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerGetUsers Atoi1 failed,err:%v\n", err)
 		return
 	}
 	size, err := strconv.Atoi(sizeStr)
 	if err != nil {
 		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerGetUsers Atoi2 failed,err:%v\n", err)
 		return
 	}
 
@@ -153,6 +158,7 @@ func (c *UserController) HandlerGetUsers(w http.ResponseWriter, r *http.Request)
 	users, total, err := c.Service.GetUsersByLimit(page, size, status, keyword)
 	if err != nil {
 		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerGetUsers GetUsersByLimit failed,err:%v\n", err)
 		return
 	}
 
@@ -161,4 +167,22 @@ func (c *UserController) HandlerGetUsers(w http.ResponseWriter, r *http.Request)
 		"list":  users,
 		"total": total,
 	})
+}
+
+// HandlerDeleteUser 响应删除用户
+func (c *UserController) HandlerDeleteUser(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerDeleteUser Atoi failed,err:%v\n", err)
+		return
+	}
+	err = c.Service.DeleteUserByID(id)
+	if err != nil {
+		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerDeleteUser DeleteUserByID failed,err:%v\n", err)
+		return
+	}
+	utils.SendJSON(w, http.StatusOK, "删除成功", nil)
 }

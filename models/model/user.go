@@ -10,6 +10,6 @@ type User struct {
 	Status     int
 	Role       string
 	Avatar     string
-	CreateTime time.Time
-	LastTime   time.Time
+	CreateTime *time.Time
+	LastTime   *time.Time
 }

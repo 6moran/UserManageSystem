@@ -20,4 +20,5 @@ func NewRouter(mux *http.ServeMux, uc *controller.UserController) {
 	mux.HandleFunc("POST /api/register", uc.HandlerRegister)
 	mux.HandleFunc("POST /api/login", uc.HandlerLogin)
 	mux.Handle("GET /api/users", middleware.AuthMiddleware(uc.Service)(http.HandlerFunc(uc.HandlerGetUsers)))
+	mux.Handle("DELETE /api/users/{id}", middleware.AuthMiddleware(uc.Service)(http.HandlerFunc(uc.HandlerDeleteUser)))
 }

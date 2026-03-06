@@ -25,7 +25,7 @@ func NewUserService(ur repo_mysql.UserRepository) UserService {
 	return &UserServiceImpl{UserRepo: ur}
 }
 
-// 处理注册业务
+// RegisterUser 处理注册业务
 func (u *UserServiceImpl) RegisterUser(r dto.AuthRequest) error {
 	//转换为model结构
 	reg := &model.User{
@@ -45,7 +45,7 @@ func (u *UserServiceImpl) RegisterUser(r dto.AuthRequest) error {
 	return nil
 }
 
-// 处理登录业务
+// LoginUser 处理登录业务
 func (u *UserServiceImpl) LoginUser(l dto.AuthRequest) (string, error) {
 	//转换为model结构
 	login := &model.User{
@@ -96,6 +96,7 @@ func (u *UserServiceImpl) GetUsersByLimit(page, size int, status, keyword string
 	var users []*dto.UserDto
 	for _, user := range userList {
 		ud := &dto.UserDto{
+			ID:         user.ID,
 			Username:   user.Username,
 			Email:      user.Email,
 			Status:     user.Status,
@@ -107,4 +108,13 @@ func (u *UserServiceImpl) GetUsersByLimit(page, size int, status, keyword string
 		users = append(users, ud)
 	}
 	return users, num, nil
+}
+
+// DeleteUserByID 处理删除用户业务
+func (u *UserServiceImpl) DeleteUserByID(id int) error {
+	err := u.UserRepo.DeleteUserByID(&model.User{ID: id})
+	if err != nil {
+		return err
+	}
+	return nil
 }
