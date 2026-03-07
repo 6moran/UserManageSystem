@@ -45,6 +45,8 @@ func getFieldErrorMessage(e validator.FieldError) string {
 		return e.Field() + "必须是" + e.Param() + "中的一个"
 	case "numeric":
 		return e.Field() + "必须是数字"
+	case "url":
+		return e.Field() + "必须是合法的URL地址"
 	default:
 		return e.Field() + "验证失败"
 	}

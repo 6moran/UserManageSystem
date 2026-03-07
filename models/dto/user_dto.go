@@ -14,10 +14,16 @@ type UserDto struct {
 	LastTime   *time.Time `json:"last_time"`
 }
 
-// AuthRequest 通用请求体
-type AuthRequest struct {
-	Email    string `json:"email" validator:"required,email,max=254"`
-	Password string `json:"password" validator:"required,min=6,max=50"`
+// RegisterRequest 注册请求体
+type RegisterRequest struct {
+	Email    string `json:"email" validate:"required,email,max=254"`
+	Password string `json:"password" validate:"required,min=6,max=50"`
+}
+
+// LoginRequest 登录请求体
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
 // AuthResponse 通用响应体
@@ -25,4 +31,12 @@ type AuthResponse struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
+}
+
+// EditRequest 编辑请求体
+type EditRequest struct {
+	ID       int
+	Username string `json:"username" validate:"required,max=50"`
+	Password string `json:"password" validate:"omitempty,min=6,max=50"`
+	Status   int    `json:"status" validate:"oneof=0 1"`
 }

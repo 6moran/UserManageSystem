@@ -38,11 +38,11 @@ func (m *MySQLUserRepository) CreateUser(user *model.User) error {
 	return nil
 }
 
-// GetByEmail 根据邮箱查找密码和id
+// GetByEmail 根据邮箱查找密码和id和状态
 func (m *MySQLUserRepository) GetByEmail(user *model.User) (*model.User, error) {
-	row := m.db.QueryRow("select id,password from user where email=?", user.Email)
+	row := m.db.QueryRow("select id,password,status from user where email=?", user.Email)
 	u := &model.User{}
-	err := row.Scan(&u.ID, &u.Password)
+	err := row.Scan(&u.ID, &u.Password, &u.Status)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrEmailNotExists
@@ -129,6 +129,30 @@ func (m *MySQLUserRepository) DeleteUserByID(user *model.User) error {
 	_, err := m.db.Exec(sqlStr, user.ID)
 	if err != nil {
 		return fmt.Errorf("Exec failed,err:%w\n", err)
+	}
+	return nil
+}
+
+// UpdateUserByID 修改用户信息
+func (m *MySQLUserRepository) UpdateUserByID(user *model.User) error {
+	baseStr := "update user set username=?,status=?"
+	args := []interface{}{}
+	args = append(args, user.Username, user.Status)
+
+	if user.Password != "" {
+		baseStr += ",password=?"
+		args = append(args, user.Password)
+	}
+	if user.Avatar != "" {
+		baseStr += ",avatar=?"
+		args = append(args, user.Avatar)
+	}
+
+	sqlStr := baseStr + " where id = ?"
+	args = append(args, user.ID)
+	_, err := m.db.Exec(sqlStr, args...)
+	if err != nil {
+		return fmt.Errorf("Exec failed,err:%w", err)
 	}
 	return nil
 }

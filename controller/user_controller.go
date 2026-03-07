@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-playground/validator/v10"
 	"html/template"
 	"log"
 	"net/http"
@@ -49,7 +48,7 @@ func (c *UserController) ShowPage(w http.ResponseWriter, r *http.Request) {
 
 // HandlerRegister 响应注册
 func (c *UserController) HandlerRegister(w http.ResponseWriter, r *http.Request) {
-	var req dto.AuthRequest
+	var req dto.RegisterRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		utils.SendJSON(w, http.StatusBadRequest, "参数错误", nil)
@@ -58,15 +57,8 @@ func (c *UserController) HandlerRegister(w http.ResponseWriter, r *http.Request)
 
 	//校验字段
 	err = utils.ValidateStruct(req)
-	var ve validator.ValidationErrors
 	if err != nil {
-		//参数校验未通过的错误
-		if errors.As(err, &ve) {
-			utils.SendJSON(w, http.StatusBadRequest, err.Error(), nil)
-			return
-		}
-		//其他系统错误
-		utils.SendJSON(w, http.StatusInternalServerError, "参数校验失败", nil)
+		utils.SendJSON(w, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 
@@ -85,7 +77,7 @@ func (c *UserController) HandlerRegister(w http.ResponseWriter, r *http.Request)
 
 // HandlerLogin 响应登录
 func (c *UserController) HandlerLogin(w http.ResponseWriter, r *http.Request) {
-	var req dto.AuthRequest
+	var req dto.LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		utils.SendJSON(w, http.StatusBadRequest, "参数错误", nil)
@@ -94,15 +86,8 @@ func (c *UserController) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	//校验字段
 	err = utils.ValidateStruct(req)
-	var ve validator.ValidationErrors
 	if err != nil {
-		//参数校验未通过的错误
-		if errors.As(err, &ve) {
-			utils.SendJSON(w, http.StatusBadRequest, err.Error(), nil)
-			return
-		}
-		//其他系统错误
-		utils.SendJSON(w, http.StatusInternalServerError, "参数校验失败", nil)
+		utils.SendJSON(w, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 
@@ -114,6 +99,10 @@ func (c *UserController) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		}
 		if errors.Is(err, services.ErrorsWrongPassword) {
 			utils.SendJSON(w, http.StatusBadRequest, "密码错误，请重新输入", nil)
+			return
+		}
+		if errors.Is(err, services.ErrorsStatusNotMatch) {
+			utils.SendJSON(w, http.StatusForbidden, "你的账号已被封禁", nil)
 			return
 		}
 		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
@@ -133,7 +122,7 @@ func (c *UserController) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	utils.SendJSON(w, http.StatusOK, "登录成功", nil)
 }
 
-// HandlerGetUsers 响应请求用户信息
+// HandlerGetUsers 响应请求全部用户信息
 func (c *UserController) HandlerGetUsers(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	pageStr := query.Get("page")
@@ -185,4 +174,63 @@ func (c *UserController) HandlerDeleteUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	utils.SendJSON(w, http.StatusOK, "删除成功", nil)
+}
+
+// HandlerUserRoleAndAvatar 响应请求当前用户的角色和头像
+func (c *UserController) HandlerUserRoleAndAvatar(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("userID")
+	user, err := c.Service.GetUserRoleAndAvatar(id.(int))
+	if err != nil {
+		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerUserRoleAndAvatar GetUserRoleAndAvatar failed,err:%v\n", err)
+		return
+	}
+	utils.SendJSON(w, http.StatusOK, "", user)
+}
+
+// HandlerEditUser 响应修改用户信息
+func (c *UserController) HandlerEditUser(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerEditUser Atoi failed,err:%v\n", err)
+		return
+	}
+
+	r.ParseMultipartForm(10 << 20)
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	status, _ := strconv.Atoi(r.FormValue("status"))
+
+	req := dto.EditRequest{
+		ID:       id,
+		Username: username,
+		Password: password,
+		Status:   status,
+	}
+	//校验字段
+	err = utils.ValidateStruct(req)
+	if err != nil {
+		utils.SendJSON(w, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	file, header, _ := r.FormFile("avatar") // 头像文件
+
+	err = c.Service.UpdateUserByID(req, file, header)
+	if err != nil {
+		if errors.Is(err, services.ErrorsJustImages) {
+			utils.SendJSON(w, http.StatusBadRequest, "只允许上传图片", nil)
+			return
+		}
+		if errors.Is(err, services.ErrorsWrongPassword) {
+			utils.SendJSON(w, http.StatusBadRequest, "图片大小不能超过2MB", nil)
+			return
+		}
+		utils.SendJSON(w, http.StatusInternalServerError, "服务器错误，请稍后再试", nil)
+		log.Printf("HandlerEditUser UpdateUserByID failed,err:%v\n", err)
+		return
+	}
+	utils.SendJSON(w, http.StatusOK, "", nil)
 }

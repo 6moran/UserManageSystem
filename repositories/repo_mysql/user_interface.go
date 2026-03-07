@@ -9,4 +9,5 @@ type UserRepository interface {
 	GetByUserID(user *model.User) (*model.User, error)
 	GetLimitUsers(page, size int, status, keyword string) ([]*model.User, int, error)
 	DeleteUserByID(user *model.User) error
+	UpdateUserByID(user *model.User) error
 }
