@@ -11,6 +11,12 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+var (
+	ErrorsIllegalSign  = errors.New("非法签名算法")
+	ErrorsExpiredToken = errors.New("token 已过期")
+	ErrorsInvalidToken = errors.New("token 无效")
+)
+
 var jwtKey = []byte("bT7@kL2#xV9!mQ4$rN8zC1&dF6pY3wHsJ5uE0tR2yI8oP4aS7dG9hK1lZ3cX6vBn")
 
 // GetToken 生成token
@@ -32,16 +38,19 @@ func ParseToken(tokenString string) (*Claims, error) {
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("非法签名算法")
+			return nil, ErrorsIllegalSign
 		}
 		return jwtKey, nil
 	})
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrorsExpiredToken
+		}
 		return nil, err
 	}
 
 	if !token.Valid {
-		return nil, errors.New("token 无效或过期")
+		return nil, ErrorsInvalidToken
 	}
 
 	return claims, nil

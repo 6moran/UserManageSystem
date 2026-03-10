@@ -29,7 +29,6 @@ async function getRoleAndAvatar() {
     try {
         const res = await fetch(`/api/users/raa`)
         const result = await res.json()
-        console.log('后端返回的数据:', result);
         //这里是检验身份出错的状态码
         if (result.code === 401 || result.code === 403){
             showModal("请求错误",result.message,"danger")
@@ -68,7 +67,6 @@ async function loadUsers() {
     try {
         const res = await fetch(`/api/users?page=${currentPage}&size=${pageSize}&status=${status}&keyword=${keyword}`)
         const result = await res.json()
-        console.log('后端返回的数据:', result);
         //这里是检验身份出错的状态码
         if (result.code === 401 || result.code === 403){
             showModal("请求错误",result.message,"danger")
@@ -260,8 +258,16 @@ function setPageTitle(title) {
 
 function logout() {
     if (confirm('确定要退出系统吗？')) {
-    localStorage.clear();
-    window.location.href = '/login';
+        // 清理前端存储
+        localStorage.clear();
+
+        // 发送请求给后端销毁 cookie
+        fetch('/logout', {
+            method: 'POST',            // 后端 logout 接口
+        }).finally(() => {
+            // 请求完成后跳转登录页
+            window.location.href = '/login';
+        });
     }
 }
 

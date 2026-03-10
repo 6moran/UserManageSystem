@@ -29,7 +29,7 @@ func main() {
 	//注册路由
 	routes.NewRouter(mux, userController)
 
-	addr := "localhost:8080"
+	addr := "0.0.0.0:8080"
 	fmt.Printf("服务器正在启动,监听地址为:%v\n", addr)
 	err = http.ListenAndServe(addr, mux)
 	if err != nil {

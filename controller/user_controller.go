@@ -46,6 +46,22 @@ func (c *UserController) ShowPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// RedirectPage 根页面跳转逻辑
+func (c *UserController) RedirectPage(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/login", http.StatusFound)
+}
+
+// DeleteToken 响应退出销毁Token
+func (c *UserController) DeleteToken(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+	})
+}
+
 // HandlerRegister 响应注册
 func (c *UserController) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterRequest
