@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
+    initPasswordToggle("password","togglePwd")
+    initPasswordToggle("confirmPassword","toggleConfirmPwd")
+
     const form = document.getElementById("registerForm");
 
     form.addEventListener("submit", async function(e) {
