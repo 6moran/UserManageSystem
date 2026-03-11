@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
+    initPasswordToggle("password","togglePwd")
     const form = document.getElementById("loginForm");
     form.addEventListener("submit", async function(e) {
         e.preventDefault(); // 阻止默认提交
