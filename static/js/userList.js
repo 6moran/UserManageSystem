@@ -127,35 +127,50 @@ function renderTable(list) {
 
     let editBtn = ""
     let deleteBtn = ""
-    if (isAdmin) {
-        // 管理员：可以编辑和删除
-        editBtn = `
-            <button onclick="editUser(${user.id})" class="p-2 hover:bg-gray-100 rounded">
-                <i data-feather="edit" class="w-4 h-4 text-blue-600"></i>
-            </button>`
+        if (isAdmin) {
+            // 当前登录用户是管理员
+            if (user.role==="管理员" && user.id !== currentUserID) {
+                //目标用户是管理员 → 不允许操作
+                editBtn = `
+            <button class="p-2 rounded cursor-not-allowed" disabled>
+                <i data-feather="edit" class="w-4 h-4 text-gray-400"></i>
+            </button>`;
 
-        if (user.id === currentUserID) {
-            // 自己 → 禁用按钮
-            deleteBtn = `
+                deleteBtn = `
             <button class="p-2 rounded cursor-not-allowed" disabled>
                 <i data-feather="trash-2" class="w-4 h-4 text-gray-400"></i>
             </button>`;
-        }else{
-            deleteBtn = `
-            <button onclick="deleteUser(${user.id})" class="p-2 hover:bg-gray-100 rounded">
-                <i data-feather="trash-2" class="w-4 h-4 text-red-600"></i>
-            </button>`
-        }
+            } else {
+                //普通用户可以操作
+                editBtn = `
+            <button onclick="editUser(${user.id})" class="p-2 hover:bg-gray-100 rounded">
+                <i data-feather="edit" class="w-4 h-4 text-blue-600"></i>
+            </button>`;
 
-    } else {
-        // 普通用户：只能编辑自己
-        if (user.id === currentUserID) {
-            editBtn = `
-                <button onclick="editUser(${user.id})" class="p-2 hover:bg-gray-100 rounded">
-                    <i data-feather="edit" class="w-4 h-4 text-blue-600"></i>
-                </button>`
+                if (user.id === currentUserID) {
+                    //不能删除自己
+                    deleteBtn = `
+                <button class="p-2 rounded cursor-not-allowed" disabled>
+                    <i data-feather="trash-2" class="w-4 h-4 text-gray-400"></i>
+                </button>`;
+                } else {
+                    deleteBtn = `
+                <button onclick="deleteUser(${user.id})" class="p-2 hover:bg-gray-100 rounded">
+                    <i data-feather="trash-2" class="w-4 h-4 text-red-600"></i>
+                </button>`;
+                }
+            }
+
+        } else {
+            // 普通用户
+            if (user.id === currentUserID) {
+                //只能编辑自己
+                editBtn = `
+            <button onclick="editUser(${user.id})" class="p-2 hover:bg-gray-100 rounded">
+                <i data-feather="edit" class="w-4 h-4 text-blue-600"></i>
+            </button>`;
+            }
         }
-    }
 
     const row = `
         <tr class="hover:bg-gray-50">
@@ -385,7 +400,7 @@ async function saveUser(){
     }
 
     if (result.code === 200) {
-        closeUserModal();
+        closeUserModal()
         getRoleAndAvatar()
     } else {
         showModal("修改失败",result.message,"danger")

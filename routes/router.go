@@ -11,7 +11,7 @@ func NewRouter(mux *http.ServeMux, uc *controller.UserController) {
 
 	mux.Handle("/", middleware.RedirectMiddleware(http.HandlerFunc(uc.RedirectPage)))
 	mux.Handle("GET /login", middleware.RedirectMiddleware(http.HandlerFunc(uc.ShowPage)))
-	mux.HandleFunc("GET /register", uc.ShowPage)
+	mux.Handle("GET /register", middleware.RedirectMiddleware(http.HandlerFunc(uc.ShowPage)))
 
 	mux.Handle("GET /index", middleware.AuthMiddleware(uc.Service)(http.HandlerFunc(uc.ShowPage)))
 	mux.Handle("GET /userList", middleware.AuthMiddleware(uc.Service)(http.HandlerFunc(uc.ShowPage)))
